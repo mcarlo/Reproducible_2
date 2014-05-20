@@ -1,4 +1,65 @@
 #
+temp <- tempfile()
+download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2",temp)
+con <- unz(temp, "repdata-data-StormData.csv") #file we wish to read
+data <- data.frame(scan(con),ncol=4,byrow=TRUE)
+unlink(temp)
+
+rownames(table(stormData$EVTYPE))
+
+
+
+'List of events from NOAA: #http://www.ncdc.noaa.gov/stormevents/ftp.jsp
+Astronomical Low Tide  Z 
+Avalanche    Z 
+Blizzard    Z 
+Coastal Flood   Z 
+Cold/Wind Chill   Z 
+Debris Flow    C 
+Dense Fog    Z 
+Dense Smoke   Z 
+Drought    Z 
+Dust Devil    C 
+Dust Storm    Z 
+Excessive Heat   Z 
+Extreme Cold/Wind Chill   Z 
+Flash Flood    C   
+Flood     C 
+Frost/Freeze    Z 
+Funnel Cloud   C 
+Freezing Fog   Z 
+Hail     C 
+Heat      Z 
+Heavy Rain    C 
+Heavy Snow    Z 
+High Surf    Z 
+High Wind    Z 
+Hurricane (Typhoon)   Z 
+Ice Storm    Z 
+Lake-Effect Snow   Z 
+Lakeshore Flood   Z 
+Lightning    C 
+Marine Hail    M 
+Marine High Wind   M 
+Marine Strong Wind   M 
+Marine Thunderstorm Wind   M  
+Rip Current    Z 
+Seiche     Z 
+Sleet      Z 
+Storm Surge/Tide   Z 
+Strong Wind    Z 
+Thunderstorm Wind   C 
+Tornado    C 
+Tropical Depression   Z 
+Tropical Storm   Z 
+Tsunami    Z 
+Volcanic Ash   Z 
+Waterspout    M 
+Wildfire    Z 
+Winter Storm   Z 
+Winter Weather   Z '
+
+
 setwd("C:/Users/Tom_Anichini/Documents/GitHub/Reproducible_2")
 stormData <- read.csv("repdata-data-StormData.csv.bz2")
 
