@@ -61,10 +61,26 @@ Winter Weather   Z '
 
 
 setwd("C:/Users/Tom_Anichini/Documents/GitHub/Reproducible_2")
-stormData <- read.csv("repdata-data-StormData.csv.bz2")
-
+stormData <- read.csv("repdata-data-StormData.csv.bz2", stringsAsFactors = FALSE)
+dim(stormData)
 # Let us consider "harmful to population health" to include FATALITIES and 
 # INJURIES
+
+attach(stormData)
+summary(stormData)
+
+stormData[which(INJURIES > quantile(INJURIES,.99999)),]
+?quantile
+which(table(stormData$X.INJURIES.) == max(table(stormData$X.INJURIES.)))
+str(stormData$X.INJURIES.)
+intInjuries <- as.integer(stormData$X.INJURIES.)
+intInjuries[is.na(intInjuries)] <- 0
+hist(intInjuries)
+stormData[1767126,]
+
+which(intInjuries == max(intInjuries))
+eventOrder <- order(-eventTypes)
+eventTypes[eventOrder][1:100]
 
 harmHealth <- stormData[,c(8,23:24)]
 
