@@ -69,10 +69,13 @@ dim(stormData)
 
 damages <- stormData[stormData$PROPDMG > 0 | stormData$CROPDMG > 0,]
 
-
+casualties <- read.csv("cas.csv")
 # Isolate cases with fatalities and injuries
 casualties <- stormData[stormData$FATALITIES > 1 | stormData$INJURIES > 1,  ]
 write.csv(casualties, "cas.csv")
+
+# The list of Event Types is all over the place. Let us clean up the grouping 
+# with a new variable, CAT, for category
 
 casualties$CAT <- casualties$EVTYPE
 casualties$CAT[grepl("TORNAD",casualties$CAT, ignore.case = T) ] <- "TORNADO"
@@ -100,8 +103,26 @@ casualties$CAT[grepl("TYPHOON",casualties$CAT, ignore.case = T)  ] <- "TROPICAL_
 casualties$CAT[grepl("TYPHOON",casualties$CAT, ignore.case = T)  ] <- "TROPICAL_STORM"
 casualties$CAT[grepl("DUST",casualties$CAT, ignore.case = T)  ] <- "DUST"
 
-table(casualties$CAT)[order(-table(casualties$CAT))]
+unhealthy <- table(casualties$CAT)
 
+fatalities <- tapply(casualties$FATALITIES,casualties$CAT,sum)
+injuries <- tapply(casualties$INJURIES,casualties$CAT,sum)
+
+danger <- data.frame(cbind(fatalities, injuries, unhealthy))
+colnames(danger) <- c("Fatalities", "Injuries", "Events")
+danger$Category <- rownames(danger)
+
+require(ggplot2)
+
+danger2 <- danger[danger$Fatalities >= 10 & danger$Injuries >= 10,]
+
+ggplot(danger2, aes(x = Injuries, y = Fatalities, size = Events, 
+                   label = Category), guide = FALSE) + 
+         geom_point(colour = "white", fill = "red", shape = 21)+ 
+         scale_area(range = c(1,25)) + 
+         scale_x_continuous(trans = "log", name = "Total Injuries (log scale)", limits = c(1, 90000)) +
+         scale_y_continuous(trans = "log", name = "Total Fatalities (log scale)", limits = c(1, 6000)) + 
+         geom_text(size = 4) + theme_bw()
 
 
 write.csv(damages, "damages.csv")
