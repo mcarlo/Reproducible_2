@@ -127,49 +127,73 @@ ggplot(danger2, aes(x = Injuries, y = Fatalities, size = Events,
 
 write.csv(damages, "damages.csv")
 
-attach(stormData)
-summary(stormData)
-
-stormData[which(INJURIES > quantile(INJURIES,.99999)),]
-?quantile
-which(table(stormData$X.INJURIES.) == max(table(stormData$X.INJURIES.)))
-str(stormData$X.INJURIES.)
-intInjuries <- as.integer(stormData$X.INJURIES.)
-intInjuries[is.na(intInjuries)] <- 0
-hist(intInjuries)
-stormData[1767126,]
-
-which(intInjuries == max(intInjuries))
-eventOrder <- order(-eventTypes)
-eventTypes[eventOrder][1:100]
-
-harmHealth <- stormData[,c(8,23:24)]
-
-fatalMean <- tapply(harmHealth$FATALITIES,harmHealth$EVTYPE,mean)
-fatalMedian <-  tapply(harmHealth$FATALITIES,harmHealth$EVTYPE,median)
-fatalSum <- tapply(harmHealth$FATALITIES,harmHealth$EVTYPE,sum)
-fatalCount <- tapply(1*(harmHealth$FATALITIES>0),harmHealth$EVTYPE,sum)
-str(fatalCount[fatalCount > 0])
-plot(fatalSum,rownames(fatalSum))
-fatalSum
-plot(x = fatalMedian[-order(fatalMedian)], y = fatalMean[-order(fatalMedian)], 
-     xlab = "Median fatalities", ylab = "Mean fatalities")
-
-summary(fatalMedian[fatalMean > 0 | fatalMedian > 0])
-length(fatalSum[fatalSum > 0])
-
-cor(order(fatalMean),order(fatalMedian))
-
-injuryMean <- tapply(stormData$INJURIES,stormData$EVTYPE,mean)
-injuryMedian <-  tapply(stormData$INJURIES,stormData$EVTYPE,median)
 
 # Let us consider 
 colnames(stormData)
 
-harmEcon <- stormData[,c(8,25:28)]
+harmEcon <- stormData[stormData$PROPDMG > 0 | stormData$CROPDMG > 0,c(8,25:28)]
+table(harmEcon$PROPDMGEXP)
+table(harmEcon$CROPDMGEXP)
+tapply(harmEcon$CROPDMG,harmEcon$CROPDMGEXP,median)
+
+tapply(harmEcon$PROPDMG,harmEcon$EVTYPE,sum)[order(-tapply(harmEcon$PROPDMG,harmEcon$EVTYPE,sum))][1:10]
+
+harmEcon$CAT <- harmEcon$EVTYPE
+harmEcon$CAT[grepl("TORNAD",harmEcon$CAT, ignore.case = T) ] <- "TORNADO"
+harmEcon$CAT[grepl("TSTM",harmEcon$CAT, ignore.case = T)  ] <- "THUNDER"
+harmEcon$CAT[grepl("THUNDER",harmEcon$CAT, ignore.case = T)  ] <- "THUNDER"
+harmEcon$CAT[grepl("FLOOD",harmEcon$CAT, ignore.case = T)  ] <- "FLOOD"
+harmEcon$CAT[grepl("HEAT",harmEcon$CAT, ignore.case = T)  ] <- "HEAT"
+harmEcon$CAT[grepl("WIND",harmEcon$CAT, ignore.case = T)  ] <- "WIND"
+harmEcon$CAT[grepl("WINTER",harmEcon$CAT, ignore.case = T)  ] <- "SNOW"
+harmEcon$CAT[grepl("BLIZZARD",harmEcon$CAT, ignore.case = T)  ] <- "SNOW"
+harmEcon$CAT[grepl("FIRE",harmEcon$CAT, ignore.case = T)  ] <- "FIRE"
+harmEcon$CAT[grepl("TIDE",harmEcon$CAT, ignore.case = T)  ] <- "TIDE"
+harmEcon$CAT[grepl("CURRENT",harmEcon$CAT, ignore.case = T)  ] <- "TIDE"
+harmEcon$CAT[grepl("RAIN",harmEcon$CAT, ignore.case = T)  ] <- "RAIN"
+harmEcon$CAT[grepl("FOG",harmEcon$CAT, ignore.case = T)  ] <- "FOG"
+harmEcon$CAT[grepl("HEAT",harmEcon$CAT, ignore.case = T)  ] <- "HEAT"
+harmEcon$CAT[grepl("COLD",harmEcon$CAT, ignore.case = T)  ] <- "COLD"
+harmEcon$CAT[grepl("SNOW",harmEcon$CAT, ignore.case = T)  ] <- "SNOW/ICE"
+harmEcon$CAT[grepl("ICE",harmEcon$CAT, ignore.case = T)  ] <- "SNOW/ICE"
+harmEcon$CAT[grepl("ICY",harmEcon$CAT, ignore.case = T)  ] <- "SNOW/ICE"
+harmEcon$CAT[grepl("SURF",harmEcon$CAT, ignore.case = T)  ] <- "TIDE"
+harmEcon$CAT[grepl("TROP",harmEcon$CAT, ignore.case = T)  ] <- "TROPICAL_STORM"
+harmEcon$CAT[grepl("HURRIC",harmEcon$CAT, ignore.case = T)  ] <- "TROPICAL_STORM"
+harmEcon$CAT[grepl("TYPHOON",harmEcon$CAT, ignore.case = T)  ] <- "TROPICAL_STORM"
+harmEcon$CAT[grepl("TYPHOON",harmEcon$CAT, ignore.case = T)  ] <- "TROPICAL_STORM"
+harmEcon$CAT[grepl("DUST",harmEcon$CAT, ignore.case = T)  ] <- "DUST"
+
+harmEcon$PropertyDamage <- harmEcon$PROPDMG
+harmEcon$PropertyDamage[harmEcon$PROPDMG %in% c("b","B")] <- harmEcon$PROPDMG*1e9
+harmEcon$PropertyDamage[harmEcon$PROPDMG %in% c("m","M")] <- harmEcon$PROPDMG*1e6
+harmEcon$PropertyDamage[harmEcon$PROPDMG %in% c("k","K")] <- harmEcon$PROPDMG*1e3
 
 
+harmEcon$CropDamage <- harmEcon$CROPDMG
+harmEcon$CropDamage[harmEcon$CROPDMG %in% c("b","B")] <- harmEcon$CROPDMG*1e9
+harmEcon$CropDamage[harmEcon$CROPDMG %in% c("m","M")] <- harmEcon$CROPDMG*1e6
+harmEcon$CropDamage[harmEcon$CROPDMG %in% c("k","K")] <- harmEcon$CROPDMG*1e3
 
+harmful <- table(harmEcon$CAT)
 
-summary(cbind(stormData$CROPDMGEXP, stormData$CROPDMG))
-plot(x=stormData$CROPDMGEXP, y=stormData$CROPDMG)
+propHarm <- tapply(harmEcon$PropertyDamage,harmEcon$CAT,sum)
+cropHarm <- tapply(harmEcon$CropDamage,harmEcon$CAT,sum)
+
+harm <- data.frame(cbind(propHarm, cropHarm, harmful))
+colnames(harm) <- c("Property", "Crops", "Events")
+harm$Category <- rownames(harmful)
+head(harm)
+
+harm[88:103,]
+danger2
+
+harm2 <- harm[harm$Property >10 & harm$Crops > 10,]
+
+ggplot(harm2, aes(x = Property, y = Crops, size = Events, 
+                    label = Category), guide = FALSE) + 
+  geom_point(colour = "white", fill = "red", shape = 21)+ 
+  scale_area(range = c(1,25)) + 
+  scale_x_continuous(trans = "log", name = "Property Damage, $Nominal (log scale)", limits = c(1, 3500000)) +
+  scale_y_continuous(trans = "log", name = "Total Crop Damage $Nominal (log scale)", limits = c(1, 120000)) + 
+  geom_text(size = 4) + theme_bw()
