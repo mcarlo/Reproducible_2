@@ -60,11 +60,51 @@ Winter Storm   Z
 Winter Weather   Z '
 
 
-setwd("C:/Users/Tom_Anichini/Documents/GitHub/Reproducible_2")
+#setwd("C:/Users/Tom_Anichini/Documents/GitHub/Reproducible_2")
+setwd("~/GitHub/Reproducible_2")
 stormData <- read.csv("repdata-data-StormData.csv.bz2", stringsAsFactors = FALSE)
 dim(stormData)
 # Let us consider "harmful to population health" to include FATALITIES and 
 # INJURIES
+
+damages <- stormData[stormData$PROPDMG > 0 | stormData$CROPDMG > 0,]
+
+
+# Isolate cases with fatalities and injuries
+casualties <- stormData[stormData$FATALITIES > 1 | stormData$INJURIES > 1,  ]
+write.csv(casualties, "cas.csv")
+
+casualties$CAT <- casualties$EVTYPE
+casualties$CAT[grepl("TORNAD",casualties$CAT, ignore.case = T) ] <- "TORNADO"
+casualties$CAT[grepl("TSTM",casualties$CAT, ignore.case = T)  ] <- "THUNDER"
+casualties$CAT[grepl("THUNDER",casualties$CAT, ignore.case = T)  ] <- "THUNDER"
+casualties$CAT[grepl("FLOOD",casualties$CAT, ignore.case = T)  ] <- "FLOOD"
+casualties$CAT[grepl("HEAT",casualties$CAT, ignore.case = T)  ] <- "HEAT"
+casualties$CAT[grepl("WIND",casualties$CAT, ignore.case = T)  ] <- "WIND"
+casualties$CAT[grepl("WINTER",casualties$CAT, ignore.case = T)  ] <- "SNOW"
+casualties$CAT[grepl("BLIZZARD",casualties$CAT, ignore.case = T)  ] <- "SNOW"
+casualties$CAT[grepl("FIRE",casualties$CAT, ignore.case = T)  ] <- "FIRE"
+casualties$CAT[grepl("TIDE",casualties$CAT, ignore.case = T)  ] <- "TIDE"
+casualties$CAT[grepl("CURRENT",casualties$CAT, ignore.case = T)  ] <- "TIDE"
+casualties$CAT[grepl("RAIN",casualties$CAT, ignore.case = T)  ] <- "RAIN"
+casualties$CAT[grepl("FOG",casualties$CAT, ignore.case = T)  ] <- "FOG"
+casualties$CAT[grepl("HEAT",casualties$CAT, ignore.case = T)  ] <- "HEAT"
+casualties$CAT[grepl("COLD",casualties$CAT, ignore.case = T)  ] <- "COLD"
+casualties$CAT[grepl("SNOW",casualties$CAT, ignore.case = T)  ] <- "SNOW/ICE"
+casualties$CAT[grepl("ICE",casualties$CAT, ignore.case = T)  ] <- "SNOW/ICE"
+casualties$CAT[grepl("ICY",casualties$CAT, ignore.case = T)  ] <- "SNOW/ICE"
+casualties$CAT[grepl("SURF",casualties$CAT, ignore.case = T)  ] <- "TIDE"
+casualties$CAT[grepl("TROP",casualties$CAT, ignore.case = T)  ] <- "TROPICAL_STORM"
+casualties$CAT[grepl("HURRIC",casualties$CAT, ignore.case = T)  ] <- "TROPICAL_STORM"
+casualties$CAT[grepl("TYPHOON",casualties$CAT, ignore.case = T)  ] <- "TROPICAL_STORM"
+casualties$CAT[grepl("TYPHOON",casualties$CAT, ignore.case = T)  ] <- "TROPICAL_STORM"
+casualties$CAT[grepl("DUST",casualties$CAT, ignore.case = T)  ] <- "DUST"
+
+table(casualties$CAT)[order(-table(casualties$CAT))]
+
+
+
+write.csv(damages, "damages.csv")
 
 attach(stormData)
 summary(stormData)
