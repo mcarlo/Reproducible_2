@@ -113,17 +113,18 @@ colnames(danger) <- c("Fatalities", "Injuries", "Events")
 danger$Category <- rownames(danger)
 
 require(ggplot2)
+library(scales)
 
 danger2 <- danger[danger$Fatalities >= 10 & danger$Injuries >= 10,]
 
 ggplot(danger2, aes(x = Injuries, y = Fatalities, size = Events, 
                    label = Category), guide = FALSE) + 
-         geom_point(colour = "white", fill = "red", shape = 21)+ 
-         scale_area(range = c(1,25)) + 
-         scale_x_continuous(trans = "log", name = "Total Injuries (log scale)", limits = c(1, 90000)) +
-         scale_y_continuous(trans = "log", name = "Total Fatalities (log scale)", limits = c(1, 6000)) + 
-         geom_text(size = 4) + theme_bw()
-
+         geom_point(colour = "white", fill = "red", shape = 21) + 
+         scale_area(range = c(1,25), name = "#Events", labels = comma) + 
+         scale_x_continuous(trans = "log2", name = "Total Injuries (log2 scale)", limits = c(2, 2^17), labels = comma) +
+         scale_y_continuous(trans = "log2", name = "Total Fatalities (log2 scale)", limits = c(2, 2^15), labels = comma) + 
+         geom_text(size = 5) + theme_bw() + 
+  ggtitle("Most Dangerous Weather Events")
 
 write.csv(damages, "damages.csv")
 
@@ -185,7 +186,8 @@ colnames(harm) <- c("Property", "Crops", "Events")
 harm$Category <- rownames(harmful)
 head(harm)
 
-harm[88:103,]
+log2(max(harm$Crops))
+
 danger2
 
 harm2 <- harm[harm$Property >10 & harm$Crops > 10,]
@@ -193,7 +195,8 @@ harm2 <- harm[harm$Property >10 & harm$Crops > 10,]
 ggplot(harm2, aes(x = Property, y = Crops, size = Events, 
                     label = Category), guide = FALSE) + 
   geom_point(colour = "white", fill = "red", shape = 21)+ 
-  scale_area(range = c(1,25)) + 
-  scale_x_continuous(trans = "log", name = "Property Damage, $Nominal (log scale)", limits = c(1, 3500000)) +
-  scale_y_continuous(trans = "log", name = "Total Crop Damage $Nominal (log scale)", limits = c(1, 120000)) + 
-  geom_text(size = 4) + theme_bw()
+  scale_area(range = c(1,25), name = "#Events", labels = comma) +  
+  scale_x_continuous(trans = "log2", name = "Property Damage, $Nominal (log2 scale)", limits = c(2, 2^22), labels = comma) +
+  scale_y_continuous(trans = "log2", name = "Total Crop Damage $Nominal (log2 scale)", limits = c(2, 2^20), labels = comma) + 
+  geom_text(size = 4) + theme_bw() +
+  ggtitle("Most Harmful Weather Events")
