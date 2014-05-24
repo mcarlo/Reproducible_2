@@ -1,6 +1,6 @@
-# Harm by Weather Events: Effects on Population Health, Crops, and Property
+Harm by Weather Events: Effects on Population Health, Crops, and Property
 ========================================
-## Synopsis
+# Synopsis
 This analysis summarizes the most harmful weather to the US population and to 
 the US economy. It summarizes weather events in terms of deaths, injuries, and 
 damage to crops and property. The data was collected by NOAA and consists of 
@@ -16,7 +16,7 @@ infrequent, Droughts are just as damaging to crops. Tropical storms are nearly
 as damaging as Floods to property and crops, but also are quite infrequent.
 
 
-## Data Processing
+# Data Processing
 The data consists of some 900K observations, and categorizes events among nearly
 1,000 different Types.
 ```{r,echo=FALSE}
@@ -133,15 +133,9 @@ colnames(harm) <- c("Property", "Crops", "Events")
 harm$Category <- rownames(harmful)
 
 ```
-Let's reduce the data further to only those with 10 or more total fatalities + injuries, and damages of 10 or more, respectively. 
 
-```{r}
-danger2 <- danger[danger$Fatalities + danger$Injuries >= 10,]
-harm2 <- harm[harm$Property + harm$Crops > 10,]
-```
-
-#Results
-Tornados dominate weather events harmful to population health. The first plot below displays the most harmful weather events, fatalities vs. injuries. The size of the bubbles indicate the total count of such events. After Tornados, the next most dangerous event types include events involving Heat, and events involving Flooding. Tornados are also much more prevalent when it comes to weather events involving either injuries or fatalities.
+# Results
+Tornados dominate weather events harmful to population health. Firgure 1 below displays the most harmful weather events, fatalities vs. injuries, conditional on either injuries or fatalities reported. The size of the bubbles indicate the total count of such events. After Tornados, the next most dangerous event types as measured by fatalities include events involving Heat, and events involving Flooding. Tornados are also much more prevalent when it comes to weather events involving either injuries or fatalities. In terms of injuries, Heat, Floods, and Thunder are about equally damaging (after Tornados).
 
 I plot the data on log10 scales to accommodate such wide ranges of results.
 
@@ -149,32 +143,32 @@ I plot the data on log10 scales to accommodate such wide ranges of results.
 require(ggplot2)
 library(scales)
 
-ggplot(danger2, aes(x = Injuries, y = Fatalities, size = Events, 
+ggplot(danger, aes(x = Injuries, y = Fatalities, size = Events, 
                    label = Category), guide = FALSE) + 
          geom_point(colour = "white", fill = "red", shape = 21) + 
          scale_size_area(max_size = 25, name = "#Events", labels = comma) + 
          scale_x_log10(name = "Total Injuries, log10 scale", limits = c(10, 10^6), labels = comma) +
          scale_y_log10(name = "Total Fatalities, log10 scale", limits = c(100, 10^4), labels = comma) + 
          geom_text(size = 5) + theme_bw() + 
-  ggtitle("Weather Events Most Harmful to U.S. Population Health, 1950-2011")
+  ggtitle("Fig. 1: Weather Events Most Harmful to U.S. Population Health, 1950-2011")
 
 ```
 
-In terms of economic damage, Floods, Droughts, and Tropical Storms dominated damage to crops, while Floods, Tropical Storms, and Tornados were most damaging to property. Despite their infrequency, Drought and Tropical Storms have been devastating economically.
+Figure 2 includes many more events; evidently more weather events result in property or crop damage than in human fatalities or injuries. In terms of economic damage, Floods, Droughts, and Tropical Storms dominated damage to crops, while Floods, Tropical Storms, and Tornados were most damaging to property. Despite their infrequency, Drought and Tropical Storms have been devastating economically.
 
 
 ```{r,warning=FALSE,fig.align='center',fig.width=10,fig.height=8,cache=FALSE}
-harm2$PropMM <- harm2$Property/10^6
-harm2$CropMM <- harm2$Crops/10^6
+harm$PropMM <- harm$Property/10^6
+harm$CropMM <- harm$Crops/10^6
 
-ggplot(harm2, aes(x = PropMM, y = CropMM, size = Events, 
+ggplot(harm, aes(x = PropMM, y = CropMM, size = Events, 
                     label = Category), guide = FALSE) + 
   geom_point(colour = "white", fill = "red", shape = 21)+ 
   scale_size_area(max_size = 25, name = "#Events", labels = comma) +  
   scale_x_log10(name = "Property Damage ($MM, 2011 dollars), log10 scale", limits = c(100, 10^6), labels = comma) +
   scale_y_log10(name = "Crop Damage ($MM, 2011 dollars), log10 scale", limits = c(10, 10^5), labels = comma) + 
   geom_text(size = 4) + theme_bw() +
-  ggtitle("Most Economically Harmful Weather Events, 1950-2011")
+  ggtitle("Fig. 2: Most Economically Harmful Weather Events, 1950-2011")
 
 
 ```
