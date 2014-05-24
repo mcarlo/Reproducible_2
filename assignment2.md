@@ -1,10 +1,27 @@
 # Harm by Weather Events: Effects on Population Health, Crops, and Property
 ========================================
 ## Synopsis
-This document summarizes the most harmful weather to the US population and to the US economy. It summarizes weather events in terms of deaths, injuries, and damage to crops and property. The data was collected by NOAA and consists of events from 1950 through November 2011. 
+This analysis summarizes the most harmful weather to the US population and to 
+the US economy. It summarizes weather events in terms of deaths, injuries, and 
+damage to crops and property. The data was collected by NOAA and consists of 
+events from 1950 through November 2011. 
+
+This analysis finds:
+
+*Tornados are by far the weather event most damaging to population health, whether measured by
+injuries or fatalities
+
+*Floods are the event most damaging to property and crops. While quite
+infrequent, Droughts are just as damaging to crops. Tropical storms are nearly
+as damaging as Floods to property and crops, but also are quite infrequent.
+
 
 ## Data Processing
-The data consists of some 900K observations, and categorizes events among nearly 1,000 different Types.
+The data consists of some 900K observations, and categorizes events among nearly
+1,000 different Types.
+
+
+
 
 ```r
 setwd("~/GitHub/Reproducible_2")
@@ -24,7 +41,42 @@ length(table(stormData$EVTYPE))
 ## [1] 985
 ```
 
-Several "types" were either misspelled or else poorly written, so for the purpose of this analysis I will group types into a few dozen smaller categories.
+
+We also need to adjust nominal dollar amounts into 2011 equivalents, so we will 
+import annual CPI from the US Bureau of Labor Statistics
+(http://data.bls.gov/pdq/querytool.jsp?survey=cu, last accessed 3/21/2013)
+
+```r
+annual_CPI <- read.csv("annual_CPI.csv")
+cpiDeflator <- annual_CPI$CPI/annual_CPI$CPI[annual_CPI$Year == 2011]
+cpiDeflator <- data.frame(cbind(annual_CPI$Year, cpiDeflator))
+colnames(cpiDeflator) <- c("Year", "Deflator")
+```
+
+
+To convert the dollar amounts in the damages columns to 2011 dollars. We will 
+start by adding a year variable based on BGN_DATE, and convert the *DMG amounts 
+accordingly
+
+```r
+require(lubridate)
+```
+
+```
+## Loading required package: lubridate
+```
+
+```
+## Warning: package 'lubridate' was built under R version 3.0.3
+```
+
+```r
+stormData$YEAR <- year(strptime(stormData$BGN_DATE, "%m/%d/%Y %H:%M:%S"))
+```
+
+
+Several "types" were either misspelled or else poorly written, so for the 
+purpose of this analysis I will group types into a few dozen smaller categories.
 
 ```r
 stormData$CAT <- stormData$EVTYPE
@@ -59,8 +111,7 @@ Now let us create two reduced data sets, one including only to those involving f
 
 ```r
 casualties <- stormData[stormData$FATALITIES > 0 | stormData$INJURIES > 0, ]
-harmEcon <- stormData[stormData$PROPDMG > 0 | stormData$CROPDMG > 0, c(8, 25:28, 
-    38)]
+harmEcon <- stormData[stormData$PROPDMG > 0 | stormData$CROPDMG > 0, ]
 ```
 
 Now in the harmEcon data we add variables, PropertyDamage and CropDamage, which reflect the nominal dollar amount of damages. These are a function of the variables PROPDMG and PROPDMGEXP, and CROPDMG and CROPDMGEXP, respectively. In general, the variables with suffix EXP are interpreted to mean (k,K = 1,000), (m,M = 1 million), and (b,B = 1 billion). For the purpose of this analysis we will ignore the impact of inflation, which is outside the scope of the NOAA data set.
@@ -68,21 +119,26 @@ Now in the harmEcon data we add variables, PropertyDamage and CropDamage, which 
 
 
 ```r
+harmEcon$Deflator <- unlist(lapply(harmEcon$YEAR, function(x) cpiDeflator$Deflator[cpiDeflator$Year == 
+    x]))
+
 harmEcon$PropertyDamage <- harmEcon$PROPDMG
-harmEcon$PropertyDamage[harmEcon$PROPDMG %in% c("b", "B")] <- harmEcon$PROPDMG * 
-    1e+09
-harmEcon$PropertyDamage[harmEcon$PROPDMG %in% c("m", "M")] <- harmEcon$PROPDMG * 
-    1e+06
-harmEcon$PropertyDamage[harmEcon$PROPDMG %in% c("k", "K")] <- harmEcon$PROPDMG * 
-    1000
+harmEcon$PropertyDamage[harmEcon$PROPDMGEXP %in% c("b", "B")] <- harmEcon$PROPDMG[harmEcon$PROPDMGEXP %in% 
+    c("b", "B")] * 1e+09
+harmEcon$PropertyDamage[harmEcon$PROPDMGEXP %in% c("m", "M")] <- harmEcon$PROPDMG[harmEcon$PROPDMGEXP %in% 
+    c("m", "M")] * 1e+06
+harmEcon$PropertyDamage[harmEcon$PROPDMGEXP %in% c("k", "K")] <- harmEcon$PROPDMG[harmEcon$PROPDMGEXP %in% 
+    c("k", "K")] * 1000
+harmEcon$PropertyDamage <- harmEcon$PropertyDamage * harmEcon$Deflator
 
 harmEcon$CropDamage <- harmEcon$CROPDMG
-harmEcon$CropDamage[harmEcon$CROPDMG %in% c("b", "B")] <- harmEcon$CROPDMG * 
-    1e+09
-harmEcon$CropDamage[harmEcon$CROPDMG %in% c("m", "M")] <- harmEcon$CROPDMG * 
-    1e+06
-harmEcon$CropDamage[harmEcon$CROPDMG %in% c("k", "K")] <- harmEcon$CROPDMG * 
-    1000
+harmEcon$CropDamage[harmEcon$CROPDMGEXP %in% c("b", "B")] <- harmEcon$CROPDMG[harmEcon$CROPDMGEXP %in% 
+    c("b", "B")] * 1e+09
+harmEcon$CropDamage[harmEcon$CROPDMGEXP %in% c("m", "M")] <- harmEcon$CROPDMG[harmEcon$CROPDMGEXP %in% 
+    c("m", "M")] * 1e+06
+harmEcon$CropDamage[harmEcon$CROPDMGEXP %in% c("k", "K")] <- harmEcon$CROPDMG[harmEcon$CROPDMGEXP %in% 
+    c("k", "K")] * 1000
+harmEcon$CropDamage <- harmEcon$CropDamage * harmEcon$Deflator
 ```
 
 Now we can tabulate by event type the number of instances involving casualties, the sum of fatalities by event type, and the sum of injuries by event type.
@@ -131,37 +187,51 @@ harm2 <- harm[harm$Property + harm$Crops > 10, ]
 #Results
 Tornados dominate weather events harmful to population health. The first plot below displays the most harmful weather events, fatalities vs. injuries. The size of the bubbles indicate the total count of such events. After Tornados, the next most dangerous event types include events involving Heat, and events involving Flooding. Tornados are also much more prevalent when it comes to weather events involving either injuries or fatalities.
 
-In terms of economic damage, Hail dominated damage to crops, while Flood, Thunder, and Tornados are even more damaging than Hail when it comes to property. Thunder is by far the most prevelant weather event involved in property or crop damage.
-
-I plot the data on log2 scales to accommodate such wide ranges of results.
+I plot the data on log10 scales to accommodate such wide ranges of results.
 
 
 ```r
 require(ggplot2)
+```
+
+```
+## Loading required package: ggplot2
+```
+
+```r
 library(scales)
 
 ggplot(danger2, aes(x = Injuries, y = Fatalities, size = Events, label = Category), 
     guide = FALSE) + geom_point(colour = "white", fill = "red", shape = 21) + 
-    scale_area(range = c(1, 25), name = "#Events", labels = comma) + scale_x_continuous(trans = "log2", 
-    name = "Total Injuries (log2 scale)", limits = c(32, 2^17), labels = comma) + 
-    scale_y_continuous(trans = "log2", name = "Total Fatalities (log2 scale)", 
-        limits = c(32, 2^15), labels = comma) + geom_text(size = 5) + theme_bw() + 
-    ggtitle("Most Dangerous Weather Events")
+    scale_size_area(max_size = 25, name = "#Events", labels = comma) + scale_x_log10(name = "Total Injuries, log10 scale", 
+    limits = c(10, 10^6), labels = comma) + scale_y_log10(name = "Total Fatalities, log10 scale", 
+    limits = c(100, 10^4), labels = comma) + geom_text(size = 5) + theme_bw() + 
+    ggtitle("Weather Events Most Harmful to U.S. Population Health, 1950-2011")
 ```
 
-<img src="figure/unnamed-chunk-81.png" title="plot of chunk unnamed-chunk-8" alt="plot of chunk unnamed-chunk-8" style="display: block; margin: auto;" />
+<img src="figure/unnamed-chunk-11.png" title="plot of chunk unnamed-chunk-11" alt="plot of chunk unnamed-chunk-11" style="display: block; margin: auto;" />
+
+
+In terms of economic damage, Floods, Droughts, and Tropical Storms dominated damage to crops, while Floods, Tropical Storms, and Tornados were most damaging to property. Despite their infrequency, Drought and Tropical Storms have been devastating economically.
+
+
+
+```r
+harm2$PropMM <- harm2$Property/10^6
+harm2$CropMM <- harm2$Crops/10^6
+
+ggplot(harm2, aes(x = PropMM, y = CropMM, size = Events, label = Category), 
+    guide = FALSE) + geom_point(colour = "white", fill = "red", shape = 21) + 
+    scale_size_area(max_size = 25, name = "#Events", labels = comma) + scale_x_log10(name = "Property Damage ($MM, 2011 dollars), log10 scale", 
+    limits = c(100, 10^6), labels = comma) + scale_y_log10(name = "Crop Damage ($MM, 2011 dollars), log10 scale", 
+    limits = c(10, 10^5), labels = comma) + geom_text(size = 4) + theme_bw() + 
+    ggtitle("Most Economically Harmful Weather Events, 1950-2011")
+```
+
+<img src="figure/unnamed-chunk-12.png" title="plot of chunk unnamed-chunk-12" alt="plot of chunk unnamed-chunk-12" style="display: block; margin: auto;" />
 
 ```r
 
-ggplot(harm2, aes(x = Property, y = Crops, size = Events, label = Category), 
-    guide = FALSE) + geom_point(colour = "white", fill = "red", shape = 21) + 
-    scale_area(range = c(1, 25), name = "#Events", labels = comma) + scale_x_continuous(trans = "log2", 
-    name = "Property Damage, $Nominal (log2 scale)", limits = c(2, 2^22), labels = comma) + 
-    scale_y_continuous(trans = "log2", name = "Total Crop Damage $Nominal (log2 scale)", 
-        limits = c(2, 2^20), labels = comma) + geom_text(size = 4) + theme_bw() + 
-    ggtitle("Most Harmful Weather Events")
 ```
-
-<img src="figure/unnamed-chunk-82.png" title="plot of chunk unnamed-chunk-8" alt="plot of chunk unnamed-chunk-8" style="display: block; margin: auto;" />
 
 
